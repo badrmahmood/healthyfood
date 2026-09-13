@@ -71,9 +71,9 @@
     </div>
 
     <script>
-        // إعدادات الاتصال بـ HiveMQ عبر WebSockets (المنفذ 8000 للمتصفحات)
-        const clientId = 'BioSpectra-Web-' + Math.random().toString(16).substr(2, 8);
-        const host = 'ws://broker.hivemq.com:8000/mqtt';
+        // إعدادات الاتصال السحابي العالمي بـ HiveMQ عبر Secure WebSockets (المنفذ 8884)
+        const clientId = 'BioSpectra-Web-Global-' + Math.random().toString(16).substr(2, 8);
+        const host = 'wss://broker.hivemq.com:8884/mqtt';
         
         const options = {
             keepalive: 60,
@@ -85,14 +85,14 @@
             connectTimeout: 30 * 1000,
         };
 
-        console.log('Connecting to MQTT broker...');
+        console.log('Connecting to Global IoT Cloud...');
         const client = mqtt.connect(host, options);
 
         // تحديث واجهة المستخدم عند الاتصال
         client.on('connect', () => {
-            console.log('Connected to HiveMQ!');
+            console.log('Connected to EMQX!');
             const statusBadge = document.getElementById('connection-status');
-            statusBadge.classList.remove('bg-red-500');
+            statusBadge.classList.remove('bg-red-500', 'bg-yellow-500');
             statusBadge.classList.add('bg-green-500');
             statusBadge.innerText = 'متصل بالسحابة (IoT Active)';
 
@@ -105,7 +105,17 @@
 
         client.on('error', (err) => {
             console.error('Connection error: ', err);
-            client.end();
+            const statusBadge = document.getElementById('connection-status');
+            statusBadge.classList.remove('bg-red-500', 'bg-green-500');
+            statusBadge.classList.add('bg-yellow-500');
+            statusBadge.innerText = 'خطأ في الاتصال (محاولة مجدداً...)';
+        });
+
+        client.on('close', () => {
+            const statusBadge = document.getElementById('connection-status');
+            statusBadge.classList.remove('bg-green-500', 'bg-yellow-500');
+            statusBadge.classList.add('bg-red-500');
+            statusBadge.innerText = 'غير متصل بالسحابة';
         });
 
         // استقبال البيانات وتحديث الواجهة
